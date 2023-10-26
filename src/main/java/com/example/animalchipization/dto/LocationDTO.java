@@ -9,8 +9,8 @@ import javax.validation.constraints.Min;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AnimalTypeDTO{
-
+public class LocationDTO {
     private Long id;
-    private String type;
+    private Double latitude;
+    private Double longitude;
 }

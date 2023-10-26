@@ -6,12 +6,15 @@ import javax.persistence.*;
 
 @Data
 @Entity
-@Table(name = "animal_types")
-public class AnimalType {
+@Table(name = "location")
+public class Location {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @Column(name = "type")
-    private String type;
+    @Column(name = "latitude")
+    private Double latitude;
+    @Column(name = "longitude")
+    private Double longitude;
+
 
 }

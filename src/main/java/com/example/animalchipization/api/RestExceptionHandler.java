@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import javax.validation.ConstraintViolationException;
+
 @Slf4j
 @RestControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
@@ -18,8 +20,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({InvalidIdException.class})
-    public ResponseEntity InvalidIdExceptionHandler(InvalidIdException invalidIdException){
-        return new ResponseEntity(invalidIdException.getMessage(), HttpStatus.BAD_REQUEST);
+    @ExceptionHandler({ConstraintViolationException.class})
+    public ResponseEntity ConstraintViolationException(ConstraintViolationException constraintViolationException){
+        return new ResponseEntity(constraintViolationException.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }

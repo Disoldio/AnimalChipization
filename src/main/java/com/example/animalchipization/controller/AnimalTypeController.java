@@ -23,8 +23,9 @@ public class AnimalTypeController {
         return type;
     }
     @GetMapping("/{typeId}")
-    public AnimalTypeDTO getById(@PathVariable @Min(value = 1) Long typeId){
+    public AnimalTypeDTO getById(@PathVariable @Min(1) Long typeId){
         return animalTypeService.getById(typeId);
     }
+
 
 }
