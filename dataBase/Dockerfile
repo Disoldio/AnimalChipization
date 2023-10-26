@@ -1,0 +1,6 @@
+FROM postgres:13-alpine
+ENV pgver 13
+ENV POSTGRES_DB=second_db
+ENV POSTGRES_USER=user
+ENV POSTGRES_PASSWORD=second
+EXPOSE 543
