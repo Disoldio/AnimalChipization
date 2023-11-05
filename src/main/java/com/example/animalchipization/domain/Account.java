@@ -3,6 +3,7 @@ package com.example.animalchipization.domain;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Data
 @Entity
@@ -19,4 +20,6 @@ public class Account {
     private String email;
     @Column(name = "password")
     private String password;
+//    @ManyToOne
+//    private Role role;
 }

@@ -27,4 +27,9 @@ public class AccountController {
     public List<AccountDTO> search(@Valid SearchAccountDTO searchAccount){
         return accountService.search(searchAccount);
     }
+
+    @PutMapping("/{accountId}")
+    public AccountDTO updateAccount(@PathVariable @Min(1) Long accountId, @Valid @RequestBody AccountDTO accountDTO){
+        return accountService.updateAccount(accountId, accountDTO);
+    }
 }

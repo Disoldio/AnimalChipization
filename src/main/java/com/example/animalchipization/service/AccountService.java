@@ -9,6 +9,7 @@ import com.example.animalchipization.repository.EntityRepository;
 import com.example.animalchipization.util.CriteriaManager;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.CriteriaQuery;
@@ -29,9 +30,16 @@ public class AccountService {
     @Autowired
     private CriteriaManager criteriaManager;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public AccountDTO createAccount(AccountDTO dto){
         Account account = new Account();
         modelMapper.map(dto, account);
+
+        String password = passwordEncoder.encode(account.getPassword());
+        account.setPassword(password);
+
         account = accountRepository.save(account);
         AccountDTO accountDTO = modelMapper.map(account, AccountDTO.class);
 
@@ -57,5 +65,18 @@ public class AccountService {
         List<AccountDTO> listDTO = list.stream().map(account -> modelMapper.map(account, AccountDTO.class)).toList();
 
         return listDTO;
+    }
+
+    public AccountDTO updateAccount(Long id, AccountDTO accountDTO){
+        Account account = accountRepository.getById(id);
+
+        account.setLastName(accountDTO.getLastName());
+        account.setFirstName(accountDTO.getFirstName());
+        account.setEmail(accountDTO.getEmail());
+        account.setPassword(accountDTO.getPassword());
+
+        Account saveAccount = accountRepository.save(account);
+        AccountDTO dto = modelMapper.map(saveAccount, AccountDTO.class);
+        return dto;
     }
 }
