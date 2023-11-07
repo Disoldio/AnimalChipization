@@ -32,4 +32,10 @@ public class AccountController {
     public AccountDTO updateAccount(@PathVariable @Min(1) Long accountId, @Valid @RequestBody AccountDTO accountDTO){
         return accountService.updateAccount(accountId, accountDTO);
     }
+
+    @DeleteMapping("/{accountId}")
+    public void deleteAccount(@PathVariable @Min(1) Long accountId){
+        accountService.deleteAccount(accountId);
+    }
+
 }

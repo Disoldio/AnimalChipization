@@ -1,11 +1,7 @@
 package com.example.animalchipization.service;
 
-import com.example.animalchipization.domain.Account;
-import com.example.animalchipization.domain.Animal;
-import com.example.animalchipization.dto.AccountDTO;
-import com.example.animalchipization.dto.AnimalDTO;
-import com.example.animalchipization.dto.SearchAccountDTO;
-import com.example.animalchipization.dto.SearchAnimalDTO;
+import com.example.animalchipization.domain.*;
+import com.example.animalchipization.dto.*;
 import com.example.animalchipization.exception.NotFoundException;
 import com.example.animalchipization.repository.AnimalRepository;
 import com.example.animalchipization.repository.EntityRepository;
@@ -15,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.CriteriaQuery;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,5 +47,29 @@ public class AnimalService {
         List<AnimalDTO> listDTO = list.stream().map(animal -> modelMapper.map(animal, AnimalDTO.class)).toList();
 
         return listDTO;
+    }
+
+    public AnimalDTO updateAnimal(Long id, AnimalDTO animalDTO){
+        Animal animal = animalRepository.getById(id);
+
+        animal.setWeight(animalDTO.getWeight());
+        animal.setLength(animalDTO.getLength());
+        animal.setHeight(animalDTO.getHeight());
+        animal.setGender(animalDTO.getGender());
+        animal.setLifeStatus(animalDTO.getLifeStatus());
+        animal.setChippingDateTime(animalDTO.getChippingDateTime());
+        animal.setChipperId(animalDTO.getChipperId());
+        animal.setChippingLocationId(animalDTO.getChippingLocationId());
+        animal.setDeathDateTime(animalDTO.getDeathDateTime());
+//        animal.setAnimalTypes(animalDTO.getAnimalTypes());
+//        animal.setVisitedLocations(animalDTO.getVisitedLocations());
+
+        Animal saveAnimal = animalRepository.save(animal);
+        AnimalDTO dto = modelMapper.map(saveAnimal, AnimalDTO.class);
+        return dto;
+    }
+
+    public void deleteAnimal(Long id){
+        animalRepository.deleteById(id);
     }
 }

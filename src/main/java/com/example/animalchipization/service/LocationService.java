@@ -1,7 +1,6 @@
 package com.example.animalchipization.service;
 
 import com.example.animalchipization.domain.Location;
-import com.example.animalchipization.dto.AnimalTypeDTO;
 import com.example.animalchipization.dto.LocationDTO;
 import com.example.animalchipization.exception.NotFoundException;
 import com.example.animalchipization.repository.LocationRepository;
@@ -30,5 +29,20 @@ public class LocationService {
         return locationsRepository.findById(id)
                 .map(type -> modelMapper.map(type, LocationDTO.class))
                 .orElseThrow(NotFoundException::new);
+    }
+
+    public LocationDTO updatePoint(Long id, LocationDTO locationDTO){
+        Location location = locationsRepository.getById(id);
+
+        location.setLatitude(locationDTO.getLatitude());
+        location.setLongitude(locationDTO.getLongitude());
+
+        Location saveLocation = locationsRepository.save(location);
+        LocationDTO dto = modelMapper.map(saveLocation, LocationDTO.class);
+        return dto;
+    }
+
+    public void deletePoint(Long id){
+        locationsRepository.deleteById(id);
     }
 }

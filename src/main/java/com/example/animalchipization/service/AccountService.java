@@ -73,10 +73,14 @@ public class AccountService {
         account.setLastName(accountDTO.getLastName());
         account.setFirstName(accountDTO.getFirstName());
         account.setEmail(accountDTO.getEmail());
-        account.setPassword(accountDTO.getPassword());
+        account.setPassword(passwordEncoder.encode(accountDTO.getPassword()));
 
         Account saveAccount = accountRepository.save(account);
         AccountDTO dto = modelMapper.map(saveAccount, AccountDTO.class);
         return dto;
+    }
+
+    public void deleteAccount(Long id){
+        accountRepository.deleteById(id);
     }
 }

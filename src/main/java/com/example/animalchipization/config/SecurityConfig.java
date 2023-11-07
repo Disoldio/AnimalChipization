@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -15,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final String[] VITELIST = {"/accounts/**", "/animals/**", "/locations/**"};
+    private static final String[] WHITE_LIST = {"/accounts/**", "/animals/**", "/locations/**"};
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
@@ -25,21 +24,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception{
-        auth.userDetailsService(userDetailsService);
-    }
-
-    @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/registration");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
-        http.authorizeRequests()
-                .antMatchers(HttpMethod.GET, VITELIST).permitAll()
-                .antMatchers("/registration").permitAll()
+        http
+                .csrf().disable()
+                .cors().disable()
+                .authorizeRequests()
+                .antMatchers(HttpMethod.GET, WHITE_LIST).permitAll()
                 .anyRequest().authenticated()
                 .and().httpBasic();
     }
