@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+
 @Validated
 @RestController
 @RequestMapping("/registration")
@@ -20,9 +22,10 @@ public class RegistrationController {
     @Autowired
     private AccountService accountService;
     @PostMapping
-    public ResponseEntity<AccountDTO> registrationAccount(@RequestBody AccountDTO accountDTO){
+    public ResponseEntity<AccountDTO> registrationAccount(@RequestBody @Valid AccountDTO accountDTO){
         AccountDTO account = accountService.createAccount(accountDTO);
         ResponseEntity<AccountDTO> accountDTOResponseEntity = new ResponseEntity<AccountDTO>(account, HttpStatus.CREATED);
+
 
         return accountDTOResponseEntity;
     }

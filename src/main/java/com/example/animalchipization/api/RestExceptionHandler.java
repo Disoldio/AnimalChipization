@@ -1,5 +1,7 @@
 package com.example.animalchipization.api;
 
+import com.example.animalchipization.exception.AlreadyExistException;
+import com.example.animalchipization.exception.InaccessibleEntityException;
 import com.example.animalchipization.exception.InvalidIdException;
 import com.example.animalchipization.exception.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -23,5 +25,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({ConstraintViolationException.class})
     public ResponseEntity ConstraintViolationException(ConstraintViolationException constraintViolationException){
         return new ResponseEntity(constraintViolationException.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({AlreadyExistException.class})
+    public ResponseEntity AlreadyExistException(AlreadyExistException alreadyExistException){
+        return new ResponseEntity(alreadyExistException.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler({InaccessibleEntityException.class})
+    public ResponseEntity InaccessibleEntityException(InaccessibleEntityException inaccessibleEntityException){
+        return new ResponseEntity(inaccessibleEntityException.getMessage(), HttpStatus.FORBIDDEN);
     }
 }

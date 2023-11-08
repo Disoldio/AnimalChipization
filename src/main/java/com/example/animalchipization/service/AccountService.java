@@ -3,12 +3,17 @@ package com.example.animalchipization.service;
 import com.example.animalchipization.domain.Account;
 import com.example.animalchipization.dto.AccountDTO;
 import com.example.animalchipization.dto.SearchAccountDTO;
+import com.example.animalchipization.exception.AlreadyExistException;
+import com.example.animalchipization.exception.InaccessibleEntityException;
 import com.example.animalchipization.exception.NotFoundException;
 import com.example.animalchipization.repository.AccountRepository;
 import com.example.animalchipization.repository.EntityRepository;
 import com.example.animalchipization.util.CriteriaManager;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +45,11 @@ public class AccountService {
         String password = passwordEncoder.encode(account.getPassword());
         account.setPassword(password);
 
-        account = accountRepository.save(account);
+        try {
+            account = accountRepository.save(account);
+        } catch (Exception e) {
+            throw new AlreadyExistException();
+        }
         AccountDTO accountDTO = modelMapper.map(account, AccountDTO.class);
 
         return accountDTO;
@@ -68,7 +77,19 @@ public class AccountService {
     }
 
     public AccountDTO updateAccount(Long id, AccountDTO accountDTO){
-        Account account = accountRepository.getById(id);
+        String currentUserName = new String();
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            currentUserName = authentication.getName();
+        }
+
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new InaccessibleEntityException());
+
+        if(!currentUserName.equals(account.getEmail())){
+            throw new InaccessibleEntityException();
+        }
 
         account.setLastName(accountDTO.getLastName());
         account.setFirstName(accountDTO.getFirstName());
@@ -81,6 +102,20 @@ public class AccountService {
     }
 
     public void deleteAccount(Long id){
-        accountRepository.deleteById(id);
+        String currentUserName = new String();
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            currentUserName = authentication.getName();
+        }
+
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new InaccessibleEntityException());
+
+        if(!currentUserName.equals(account.getEmail())){
+            throw new InaccessibleEntityException();
+        }
+
+        accountRepository.delete(account);
     }
 }
