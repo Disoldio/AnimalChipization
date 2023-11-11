@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Min;
+import javax.validation.constraints.*;
 
 @Data
 @AllArgsConstructor
@@ -12,5 +12,8 @@ import javax.validation.constraints.Min;
 public class AnimalTypeDTO{
 
     private Long id;
+    @NotNull
+    @NotEmpty
+    @NotBlank
     private String type;
 }

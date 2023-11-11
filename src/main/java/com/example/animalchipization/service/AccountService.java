@@ -9,6 +9,7 @@ import com.example.animalchipization.exception.NotFoundException;
 import com.example.animalchipization.repository.AccountRepository;
 import com.example.animalchipization.repository.EntityRepository;
 import com.example.animalchipization.util.CriteriaManager;
+import com.example.animalchipization.util.SecurityUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -21,6 +22,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class AccountService {
@@ -77,19 +79,15 @@ public class AccountService {
     }
 
     public AccountDTO updateAccount(Long id, AccountDTO accountDTO){
-        String currentUserName = new String();
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            currentUserName = authentication.getName();
-        }
+        SecurityUtil.getCurrentUserEmail().ifPresent(email -> {
+            Account currentAccount = accountRepository.getAccountByEmail(email);
+            if(!id.equals(currentAccount.getId())){
+                throw new InaccessibleEntityException();
+            }
+        });
 
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new InaccessibleEntityException());
-
-        if(!currentUserName.equals(account.getEmail())){
-            throw new InaccessibleEntityException();
-        }
 
         account.setLastName(accountDTO.getLastName());
         account.setFirstName(accountDTO.getFirstName());

@@ -1,9 +1,10 @@
 package com.example.animalchipization.service;
 
-import com.example.animalchipization.domain.Animal;
 import com.example.animalchipization.domain.AnimalType;
-import com.example.animalchipization.dto.AnimalDTO;
+import com.example.animalchipization.dto.AccountDTO;
 import com.example.animalchipization.dto.AnimalTypeDTO;
+import com.example.animalchipization.exception.AlreadyExistException;
+import com.example.animalchipization.exception.InaccessibleEntityException;
 import com.example.animalchipization.exception.NotFoundException;
 import com.example.animalchipization.repository.AnimalTypeRepository;
 import org.modelmapper.ModelMapper;
@@ -19,24 +20,32 @@ public class AnimalTypeService {
     @Autowired
     private AnimalTypeRepository animalTypeRepository;
 
-    public AnimalTypeDTO createType(String type){
+    public AnimalTypeDTO createType(AnimalTypeDTO dto){
         AnimalType animalType = new AnimalType();
-        animalType.setType(type);
+
+        animalTypeRepository.findByType(dto.getType())
+                .ifPresent(type -> {throw new AlreadyExistException();});
+
+        modelMapper.map(dto, animalType);
+
         animalType = animalTypeRepository.save(animalType);
-        AnimalTypeDTO animalTypeDTO = new AnimalTypeDTO(animalType.getId(), animalType.getType());
+        AnimalTypeDTO animalTypeDTO = modelMapper.map(animalType, AnimalTypeDTO.class);
 
         return animalTypeDTO;
     }
-    public List<AnimalTypeDTO> getAllType(){
-        return null;
-    }
+
     public AnimalTypeDTO getById(Long id){
         return animalTypeRepository.findById(id)
                 .map(type -> modelMapper.map(type, AnimalTypeDTO.class))
                 .orElseThrow(NotFoundException::new);
     }
+
     public AnimalTypeDTO updateAnimalType(Long id, AnimalTypeDTO animalTypeDTO){
-        AnimalType animalType = animalTypeRepository.getById(id);
+        AnimalType animalType = animalTypeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException());
+
+        animalTypeRepository.findByType(animalTypeDTO.getType())
+                .ifPresent(type -> {throw new AlreadyExistException();});
 
         animalType.setType(animalTypeDTO.getType());
 
@@ -46,7 +55,10 @@ public class AnimalTypeService {
     }
 
     public void deleteAnimalType(Long id){
-        animalTypeRepository.deleteById(id);
+        AnimalType animalType = animalTypeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException());
+
+        animalTypeRepository.delete(animalType);
     }
 
 

@@ -5,6 +5,8 @@ import com.example.animalchipization.dto.AnimalTypeDTO;
 import com.example.animalchipization.repository.AnimalTypeRepository;
 import com.example.animalchipization.service.AnimalTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,10 +21,10 @@ public class AnimalTypeController {
     private AnimalTypeService animalTypeService;
 
     @PostMapping
-    public AnimalTypeDTO createType(AnimalTypeDTO animalTypeDTO){
-        AnimalTypeDTO type = animalTypeService.createType(animalTypeDTO.getType());
+    public ResponseEntity<AnimalTypeDTO> createType(@RequestBody @Valid AnimalTypeDTO animalTypeDTO){
+        AnimalTypeDTO type = animalTypeService.createType(animalTypeDTO);
 
-        return type;
+        return new ResponseEntity<>(type, HttpStatus.CREATED);
     }
     @GetMapping("/{typeId}")
     public AnimalTypeDTO getById(@PathVariable @Min(1) Long typeId){

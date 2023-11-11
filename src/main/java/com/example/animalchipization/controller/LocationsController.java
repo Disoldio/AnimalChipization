@@ -1,6 +1,7 @@
 package com.example.animalchipization.controller;
 
 import com.example.animalchipization.dto.AccountDTO;
+import com.example.animalchipization.dto.AnimalTypeDTO;
 import com.example.animalchipization.dto.LocationDTO;
 import com.example.animalchipization.service.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,13 @@ import javax.validation.constraints.Min;
 public class LocationsController {
     @Autowired
     private LocationService locationsService;
+
+    @PostMapping
+    public ResponseEntity<LocationDTO> createLocation(@RequestBody @Valid LocationDTO dto){
+        LocationDTO locationDTO = locationsService.createLocation(dto);
+
+        return new ResponseEntity<>(locationDTO, HttpStatus.CREATED);
+    }
 
     @GetMapping("/{pointId}")
     public LocationDTO getById(@PathVariable @Min(1) Long pointId){

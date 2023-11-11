@@ -1,7 +1,10 @@
 package com.example.animalchipization.service;
 
+import com.example.animalchipization.domain.AnimalType;
 import com.example.animalchipization.domain.Location;
+import com.example.animalchipization.dto.AnimalTypeDTO;
 import com.example.animalchipization.dto.LocationDTO;
+import com.example.animalchipization.exception.AlreadyExistException;
 import com.example.animalchipization.exception.NotFoundException;
 import com.example.animalchipization.repository.LocationRepository;
 import org.modelmapper.ModelMapper;
@@ -15,12 +18,16 @@ public class LocationService {
     @Autowired
     private LocationRepository locationsRepository;
 
-    public LocationDTO createLocation(Double latitude, Double longitude){
+    public LocationDTO createLocation(LocationDTO dto){
         Location location = new Location();
-        location.setLongitude(longitude);
-        location.setLatitude(latitude);
+
+        locationsRepository.findByLatitudeAndLongitude(dto.getLatitude(), dto.getLongitude())
+                .ifPresent(loc -> {throw new AlreadyExistException();});
+
+        modelMapper.map(dto, location);
+
         location = locationsRepository.save(location);
-        LocationDTO locationDTO = new LocationDTO(location.getId(), location.getLatitude(), location.getLongitude());
+        LocationDTO locationDTO = modelMapper.map(location, LocationDTO.class);
 
         return locationDTO;
     }
@@ -32,7 +39,12 @@ public class LocationService {
     }
 
     public LocationDTO updatePoint(Long id, LocationDTO locationDTO){
-        Location location = locationsRepository.getById(id);
+        Location location = locationsRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException());
+
+        locationsRepository.findByLatitudeAndLongitude(locationDTO.getLatitude(), locationDTO.getLongitude())
+                .ifPresent(type -> {throw new AlreadyExistException();});
+
 
         location.setLatitude(locationDTO.getLatitude());
         location.setLongitude(locationDTO.getLongitude());
@@ -43,6 +55,9 @@ public class LocationService {
     }
 
     public void deletePoint(Long id){
-        locationsRepository.deleteById(id);
+        Location location = locationsRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException());
+
+        locationsRepository.delete(location);
     }
 }

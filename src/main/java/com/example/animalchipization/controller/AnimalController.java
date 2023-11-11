@@ -3,6 +3,8 @@ package com.example.animalchipization.controller;
 import com.example.animalchipization.dto.*;
 import com.example.animalchipization.service.AnimalService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +18,13 @@ import java.util.List;
 public class AnimalController {
     @Autowired
     private AnimalService animalService;
+
+    @PostMapping
+    public ResponseEntity<AnimalDTO> createAnimal(@RequestBody @Valid AnimalDTO dto){
+        AnimalDTO animalDTO = animalService.createAnimal(dto);
+
+        return new ResponseEntity<>(animalDTO, HttpStatus.CREATED);
+    }
 
     @GetMapping("/{animalId}")
     public AnimalDTO getById(@PathVariable @Min(1) Long animalId){

@@ -23,7 +23,7 @@ public class CriteriaManager {
         List<Predicate> list = new ArrayList<>();
         paramsMap.forEach((key, value) -> {
             if (value != null){
-                Predicate predicate = criteriaBuilder.like(criteriaBuilder.upper(root.get(key)), "%" + value + "%");
+                Predicate predicate = criteriaBuilder.like(criteriaBuilder.upper(root.get(key)), "%" + value.toString().toUpperCase() + "%");
                 list.add(predicate);
             }
         });

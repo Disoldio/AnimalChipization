@@ -2,6 +2,8 @@ package com.example.animalchipization.service;
 
 import com.example.animalchipization.domain.*;
 import com.example.animalchipization.dto.*;
+import com.example.animalchipization.exception.AlreadyExistException;
+import com.example.animalchipization.exception.InaccessibleEntityException;
 import com.example.animalchipization.exception.NotFoundException;
 import com.example.animalchipization.repository.AnimalRepository;
 import com.example.animalchipization.repository.EntityRepository;
@@ -31,6 +33,17 @@ public class AnimalService {
         return animalRepository.findById(id)
                 .map(type -> modelMapper.map(type, AnimalDTO.class))
                 .orElseThrow(NotFoundException::new);
+    }
+
+    public AnimalDTO createAnimal(AnimalDTO dto){
+        Animal animal = new Animal();
+
+        modelMapper.map(dto, animal);
+
+        animal = animalRepository.save(animal);
+        AnimalDTO animalDTO = modelMapper.map(animal, AnimalDTO.class);
+
+        return animalDTO;
     }
 
     public List<AnimalDTO> search(SearchAnimalDTO dto){
@@ -70,6 +83,9 @@ public class AnimalService {
     }
 
     public void deleteAnimal(Long id){
+        Animal animal = animalRepository.findById(id)
+                .orElseThrow(() -> new InaccessibleEntityException());
+
         animalRepository.deleteById(id);
     }
 }
