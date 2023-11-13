@@ -4,10 +4,12 @@ import com.example.animalchipization.domain.AnimalType;
 import com.example.animalchipization.domain.Gender;
 import com.example.animalchipization.domain.LifeStatus;
 import com.example.animalchipization.domain.VisitedLocation;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -18,14 +20,14 @@ import java.util.List;
 @NoArgsConstructor
 public class AnimalDTO {
     private Long id;
-    @Min(1)
     @NotNull
+    @DecimalMin(value = "0.0", inclusive = false)
     private Float weight;
-    @Min(1)
     @NotNull
+    @DecimalMin(value = "0.0", inclusive = false)
     private Float length;
-    @Min(1)
     @NotNull
+    @DecimalMin(value = "0.0", inclusive = false)
     private Float height;
     @NotNull
     private Gender gender;
@@ -38,8 +40,8 @@ public class AnimalDTO {
     @NotNull
     private Long chippingLocationId;
     private LocalDateTime deathDateTime;
-    @Min(1)
     @NotNull
-    private List<Long> animalTypes;
+    @JsonProperty("animalTypes")
+    private List<Long> animalTypesIds;
     private List<Long> visitedLocations;
 }

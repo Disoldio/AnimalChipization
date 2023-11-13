@@ -1,6 +1,8 @@
 package com.example.animalchipization.controller;
 
-import com.example.animalchipization.dto.*;
+import com.example.animalchipization.dto.AnimalDTO;
+import com.example.animalchipization.dto.SearchAnimalDTO;
+import com.example.animalchipization.dto.VisitedLocationDTO;
 import com.example.animalchipization.service.AnimalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import java.util.List;
+import java.util.logging.Handler;
 
 @Validated
 @RestController
@@ -18,6 +21,14 @@ import java.util.List;
 public class AnimalController {
     @Autowired
     private AnimalService animalService;
+
+
+    @PostMapping("/{animalId}/locations/{locationId}")
+    public ResponseEntity<VisitedLocationDTO> addVisitedLocation(@PathVariable @Min(1) Long animalId, @PathVariable @Min(1) Long locationId){
+        VisitedLocationDTO visitedLocationDTO = animalService.addVisitedLocation(animalId, locationId);
+
+        return new ResponseEntity<>(visitedLocationDTO, HttpStatus.CREATED);
+    }
 
     @PostMapping
     public ResponseEntity<AnimalDTO> createAnimal(@RequestBody @Valid AnimalDTO dto){

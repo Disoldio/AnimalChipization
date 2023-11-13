@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -34,12 +35,12 @@ public class Animal {
     private Long chippingLocationId;
     @Column(name = "deathDateTime")
     private LocalDateTime deathDateTime;
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.REMOVE)
     @JoinTable(
             name = "animal_types_rel",
             joinColumns = @JoinColumn(name = "animal_id"),
             inverseJoinColumns = @JoinColumn(name = "types_id"))
     private List<AnimalType> animalTypes;
-    @OneToMany
-    private List<VisitedLocation> visitedLocations;
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "animal")
+    private List<VisitedLocation> visitedLocations = new ArrayList<>();
 }

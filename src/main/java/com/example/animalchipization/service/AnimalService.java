@@ -5,8 +5,7 @@ import com.example.animalchipization.dto.*;
 import com.example.animalchipization.exception.AlreadyExistException;
 import com.example.animalchipization.exception.InaccessibleEntityException;
 import com.example.animalchipization.exception.NotFoundException;
-import com.example.animalchipization.repository.AnimalRepository;
-import com.example.animalchipization.repository.EntityRepository;
+import com.example.animalchipization.repository.*;
 import com.example.animalchipization.util.CriteriaManager;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,23 +24,66 @@ public class AnimalService {
     @Autowired
     private AnimalRepository animalRepository;
     @Autowired
+    private LocationRepository locationRepository;
+    @Autowired
+    private AnimalTypeRepository animalTypeRepository;
+    @Autowired
+    private VisitedLocationsRepository visitedLocationsRepository;
+    @Autowired
     private CriteriaManager criteriaManager;
     @Autowired
     private EntityRepository entityRepository;
 
     public AnimalDTO getById(Long id){
         return animalRepository.findById(id)
-                .map(type -> modelMapper.map(type, AnimalDTO.class))
+                .map(type -> {
+                    AnimalDTO dto = new AnimalDTO();
+                    modelMapper.map(type, dto);
+                    dto.setAnimalTypesIds(
+                            type.getAnimalTypes()
+                                    .stream()
+                                    .map(AnimalType::getId)
+                                    .toList()
+                    );
+                    return dto;
+                })
                 .orElseThrow(NotFoundException::new);
+    }
+
+    public VisitedLocationDTO addVisitedLocation(Long animalId, Long locationId){
+        Animal animal = animalRepository.findById(animalId)
+                .orElseThrow(() -> new NotFoundException());
+        if(animal.getLifeStatus() == LifeStatus.DEAD){
+            throw new RuntimeException();
+        }
+        Location location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new NotFoundException());
+
+        VisitedLocation visitLoc = new VisitedLocation();
+
+        visitLoc.setAnimal(animal);
+        visitLoc.setLocation(location);
+        visitLoc.setVisitTime(LocalDateTime.now());
+        visitLoc = visitedLocationsRepository.save(visitLoc);
+
+        VisitedLocationDTO visitedLocationDTO = new VisitedLocationDTO(visitLoc.getId(), visitLoc.getVisitTime(), visitLoc.getLocation().getId());
+
+        return visitedLocationDTO;
     }
 
     public AnimalDTO createAnimal(AnimalDTO dto){
         Animal animal = new Animal();
+        List<AnimalType> types = animalTypeRepository.findAllByIdIn(dto.getAnimalTypesIds());
 
         modelMapper.map(dto, animal);
+        animal.setAnimalTypes(types);
 
         animal = animalRepository.save(animal);
         AnimalDTO animalDTO = modelMapper.map(animal, AnimalDTO.class);
+        List<Long> ids = animal.getAnimalTypes().stream()
+                .map(type -> type.getId())
+                .toList();
+        animalDTO.setAnimalTypesIds(ids);
 
         return animalDTO;
     }

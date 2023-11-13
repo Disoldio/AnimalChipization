@@ -1,8 +1,6 @@
 package com.example.animalchipization.service;
 
-import com.example.animalchipization.domain.AnimalType;
 import com.example.animalchipization.domain.Location;
-import com.example.animalchipization.dto.AnimalTypeDTO;
 import com.example.animalchipization.dto.LocationDTO;
 import com.example.animalchipization.exception.AlreadyExistException;
 import com.example.animalchipization.exception.NotFoundException;
