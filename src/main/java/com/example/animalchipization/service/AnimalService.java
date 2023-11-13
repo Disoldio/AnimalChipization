@@ -35,19 +35,23 @@ public class AnimalService {
     private EntityRepository entityRepository;
 
     public AnimalDTO getById(Long id){
-        return animalRepository.findById(id)
-                .map(type -> {
-                    AnimalDTO dto = new AnimalDTO();
-                    modelMapper.map(type, dto);
-                    dto.setAnimalTypesIds(
-                            type.getAnimalTypes()
-                                    .stream()
-                                    .map(AnimalType::getId)
-                                    .toList()
-                    );
-                    return dto;
-                })
+        Animal animal = animalRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
+
+        AnimalDTO dto = modelMapper.map(animal, AnimalDTO.class);
+
+        var ids = animal.getVisitedLocations().stream()
+                .map(VisitedLocation::getId)
+                .toList();
+        dto.setVisitedLocationsIsd(ids);
+
+
+        var types = animal.getAnimalTypes().stream()
+                .map(AnimalType::getId)
+                .toList();
+        dto.setAnimalTypesIds(types);
+
+        return dto;
     }
 
     public VisitedLocationDTO addVisitedLocation(Long animalId, Long locationId){
@@ -74,6 +78,10 @@ public class AnimalService {
     public AnimalDTO createAnimal(AnimalDTO dto){
         Animal animal = new Animal();
         List<AnimalType> types = animalTypeRepository.findAllByIdIn(dto.getAnimalTypesIds());
+
+        if(types.size() != dto.getAnimalTypesIds().size()){
+            throw new NotFoundException();
+        }
 
         modelMapper.map(dto, animal);
         animal.setAnimalTypes(types);

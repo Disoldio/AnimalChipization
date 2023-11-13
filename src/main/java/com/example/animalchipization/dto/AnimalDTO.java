@@ -9,9 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.validation.constraints.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -35,13 +35,16 @@ public class AnimalDTO {
     private LocalDateTime chippingDateTime;
     @Min(1)
     @NotNull
+    @ManyToOne
     private Integer chipperId;
     @Min(1)
     @NotNull
     private Long chippingLocationId;
     private LocalDateTime deathDateTime;
     @NotNull
+    @NotEmpty
     @JsonProperty("animalTypes")
-    private List<Long> animalTypesIds;
-    private List<Long> visitedLocations;
+    private List<@Min(1) Long> animalTypesIds;
+    @JsonProperty("visitedLocations")
+    private List<Long> visitedLocationsIsd;
 }

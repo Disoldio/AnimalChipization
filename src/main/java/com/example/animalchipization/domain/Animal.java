@@ -26,7 +26,7 @@ public class Animal {
     private Gender gender;
     @Column(name = "lifeStatus")
     @Enumerated(value = EnumType.STRING)
-    private LifeStatus lifeStatus;
+    private LifeStatus lifeStatus = LifeStatus.ALIVE;
     @Column(name = "chippingDateTime")
     private LocalDateTime chippingDateTime;
     @Column(name = "chipperId")
