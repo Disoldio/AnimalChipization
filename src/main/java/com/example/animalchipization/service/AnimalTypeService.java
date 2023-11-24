@@ -40,6 +40,13 @@ public class AnimalTypeService {
                 .orElseThrow(NotFoundException::new);
     }
 
+    public List<AnimalType> findAllByIds(List<Long> ids){
+        return ids.stream()
+                .map(id -> animalTypeRepository.findById(id))
+                .map(opt -> opt.orElseThrow(NotFoundException::new))
+                .toList();
+    }
+
     public AnimalTypeDTO updateAnimalType(Long id, AnimalTypeDTO animalTypeDTO){
         AnimalType animalType = animalTypeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException());

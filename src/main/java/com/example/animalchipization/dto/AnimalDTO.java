@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -35,16 +36,13 @@ public class AnimalDTO {
     private LocalDateTime chippingDateTime;
     @Min(1)
     @NotNull
-    @ManyToOne
-    private Integer chipperId;
+    private Long chipperId;
     @Min(1)
     @NotNull
     private Long chippingLocationId;
     private LocalDateTime deathDateTime;
-    @NotNull
-    @NotEmpty
     @JsonProperty("animalTypes")
     private List<@Min(1) Long> animalTypesIds;
     @JsonProperty("visitedLocations")
-    private List<Long> visitedLocationsIsd;
+    private List<Long> visitedLocationsIsd = new ArrayList<>();
 }

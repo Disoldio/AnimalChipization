@@ -42,6 +42,11 @@ public class AnimalController {
         return animalService.getById(animalId);
     }
 
+    @GetMapping("/{animalId}/locations")
+    public ResponseEntity<List<VisitedLocationDTO>> allVisitedLocation(@PathVariable @Min(1) Long animalId){
+        return  ResponseEntity.ok(animalService.allVisitedLocation(animalId));
+    }
+
     @GetMapping("/search")
     public List<AnimalDTO> search(@Valid SearchAnimalDTO searchAnimalDTO){
         return animalService.search(searchAnimalDTO);

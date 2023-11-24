@@ -20,6 +20,6 @@ public class Account {
     private String email;
     @Column(name = "password")
     private String password;
-//    @ManyToOne
-//    private Role role;
+    @OneToMany(mappedBy = "chipper")
+    private List<Animal> chippedAnimalList;
 }
