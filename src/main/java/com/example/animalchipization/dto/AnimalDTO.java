@@ -1,16 +1,12 @@
 package com.example.animalchipization.dto;
 
-import com.example.animalchipization.domain.AnimalType;
 import com.example.animalchipization.domain.Gender;
 import com.example.animalchipization.domain.LifeStatus;
-import com.example.animalchipization.domain.VisitedLocation;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.validation.constraints.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -44,5 +40,5 @@ public class AnimalDTO {
     @JsonProperty("animalTypes")
     private List<@Min(1) Long> animalTypesIds;
     @JsonProperty("visitedLocations")
-    private List<Long> visitedLocationsIsd = new ArrayList<>();
+    private List<Long> visitedLocationsIds = new ArrayList<>();
 }

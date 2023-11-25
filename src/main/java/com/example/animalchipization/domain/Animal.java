@@ -45,5 +45,5 @@ public class Animal {
             inverseJoinColumns = @JoinColumn(name = "types_id"))
     private List<AnimalType> animalTypes;
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "animal")
-    private ArrayList<VisitedLocation> visitedLocations = new ArrayList<>();
+    private List<VisitedLocation> visitedLocations = new ArrayList<>();
 }

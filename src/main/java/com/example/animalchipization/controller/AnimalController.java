@@ -57,6 +57,12 @@ public class AnimalController {
         return animalService.updateAnimal(animalId, animalDTO);
     }
 
+    @PutMapping("/{animalId}/locations")
+    public VisitedLocationDTO updateVisitedLocation(@Valid @RequestBody VisitedLocationDTO visitedLocationDTO,@PathVariable @Min(1) Long animalId){
+        return animalService.updateVisitedLocation(animalId, visitedLocationDTO);
+    }
+
+
     @DeleteMapping("/{animalId}")
     public void deleteAnimal(@PathVariable @Min(1) Long animalId){
         animalService.deleteAnimal(animalId);
