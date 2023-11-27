@@ -22,15 +22,15 @@ import java.util.Map;
 @Service
 @AllArgsConstructor
 public class AnimalService {
-        private final ModelMapper modelMapper;
-        private final AnimalRepository animalRepository;
-        private final LocationRepository locationRepository;
-        private final AnimalTypeRepository animalTypeRepository;
-        private final VisitedLocationsRepository visitedLocationsRepository;
-        private final AccountRepository accountRepository;
-        private final CriteriaManager criteriaManager;
-        private final EntityRepository entityRepository;
-        private final  AnimalTypeService animalTypeService;
+    private final ModelMapper modelMapper;
+    private final AnimalRepository animalRepository;
+    private final LocationRepository locationRepository;
+    private final AnimalTypeRepository animalTypeRepository;
+    private final VisitedLocationsRepository visitedLocationsRepository;
+    private final AccountRepository accountRepository;
+    private final CriteriaManager criteriaManager;
+    private final EntityRepository entityRepository;
+    private final  AnimalTypeService animalTypeService;
 
     public AnimalDTO getById(Long id){
         Animal animal = animalRepository.findById(id)
@@ -65,12 +65,19 @@ public class AnimalService {
         List<Long> locIds = animal.getVisitedLocations().stream()
                 .map(loc -> loc.getLocation().getId())
                 .toList();
+        List<VisitedLocation> sortedVisitedLocations = animal.getVisitedLocations().stream()
+                .sorted((vl1, vl2) -> vl2.getId().compareTo(vl1.getId()))
+                .toList();
 
         if(animal.getChippingLocationId().getId().equals(locationId)){
             throw new DataIntegrityViolationException("he`s already her");
         }
-        if(locIds.contains(locationId)){
-            throw new DataIntegrityViolationException("this animal visited this location");
+        if(!sortedVisitedLocations.isEmpty()){
+            int i = sortedVisitedLocations.size() - 1;
+            VisitedLocation visitedLocation = sortedVisitedLocations.get(i);
+            if(visitedLocation != null && visitedLocation.getLocation().getId().equals(locationId)){
+                throw new DataIntegrityViolationException("Предыдущая локация равна нынешней");
+            }
         }
 
         if(animal.getLifeStatus() == LifeStatus.DEAD){
@@ -168,76 +175,34 @@ public class AnimalService {
     }
 
     public VisitedLocationDTO updateVisitedLocation(Long animalId, VisitedLocationDTO dto){
-        Animal animal = animalRepository.findById(animalId)
-                .orElseThrow(NotFoundException::new);
-
-        Location chippingLocation = animal.getChippingLocationId();
-        Long chippingId = chippingLocation.getId();
-
-        List<VisitedLocation> visitedLocations = animal.getVisitedLocations();
-
         VisitedLocation visitedLocation = visitedLocationsRepository.findById(dto.getId())
                 .orElseThrow(NotFoundException::new);
-
-        List<VisitedLocation> sortedVisitedLocations = visitedLocations.stream()
+        Animal animal = animalRepository.findById(animalId)
+                .orElseThrow(NotFoundException::new);
+        Location location = locationRepository.findById(dto.getLocationPointId())
+                .orElseThrow(NotFoundException::new);
+        Long chippingId = animal.getChippingLocationId().getId();
+        List<VisitedLocation> sortedVisitedLocations = animal.getVisitedLocations().stream()
                 .sorted((vl1, vl2) -> vl2.getId().compareTo(vl1.getId()))
                 .toList();
-        int i = sortedVisitedLocations.indexOf(visitedLocation);
-        boolean i1 = sortedVisitedLocations.get(i+1).getLocation().equals(dto.getLocationPointId());
-        boolean i2 = sortedVisitedLocations.get(i-1).getLocation().equals(dto.getLocationPointId());
 
-        if(i == 0){
-            if(i1){
-                throw new DataIntegrityViolationException("i = 0");
-            }
-        }
-        if(i == sortedVisitedLocations.size()){
-            if(i2){
-                throw new DataIntegrityViolationException("i = max size");
-            }
-        }
-        if(i != 0 || i != sortedVisitedLocations.size()){
-            if(i1){
-                throw new DataIntegrityViolationException("i = 0");
-            }
-            if(i2){
-                throw new DataIntegrityViolationException("i = max size");
-            }
-        }
-
-        if(sortedVisitedLocations.get(i+1).getLocation().getId().equals(dto.getLocationPointId()) || sortedVisitedLocations.get(i-1).getLocation().getId().equals(dto.getLocationPointId())){
-            throw new DataIntegrityViolationException("2");
-        }
-
-
-
-
-
-
-
-
-        if(!visitedLocations.contains(visitedLocation)){
+        if(!sortedVisitedLocations.contains(visitedLocation)){
             throw new NotFoundException();
         }
 
         if(chippingId.equals(dto.getLocationPointId())){
-            VisitedLocation firstVisitedLocation = visitedLocations.stream()
-                    .sorted((vl1, vl2) -> vl2.getId().compareTo(vl1.getId()))
-                    .findFirst()
-                    .orElseThrow(NotFoundException::new);
-
+            VisitedLocation firstVisitedLocation = sortedVisitedLocations.get(0);
             if(firstVisitedLocation.getId().equals(dto.getId())){
                 throw new DataIntegrityViolationException("");
             }
         }
 
-        Location location = locationRepository.findById(dto.getLocationPointId())
-                .orElseThrow(NotFoundException::new);
+        if(checkCollision(sortedVisitedLocations, visitedLocation, location)){
+            throw new DataIntegrityViolationException("Совпадает с предыдущим и/или со следующим");
+        }
 
         visitedLocation.setLocation(location);
-
         VisitedLocation saveLocation = visitedLocationsRepository.save(visitedLocation);
-
         return new VisitedLocationDTO(saveLocation.getId(), saveLocation.getVisitTime(), saveLocation.getLocation().getId());
     }
 
@@ -250,5 +215,22 @@ public class AnimalService {
         }
 
         animalRepository.deleteById(id);
+    }
+
+    private boolean checkCollision(List<VisitedLocation> sortedVisitedLocations, VisitedLocation visitedLocation, Location location){
+        int i = sortedVisitedLocations.indexOf(visitedLocation);
+
+        if(i > 0){
+            if(sortedVisitedLocations.get(i-1).getLocation().equals(location)){
+                return true;
+            }
+        }
+        if(i < sortedVisitedLocations.size()-1){
+            if(sortedVisitedLocations.get(i+1).getLocation().equals(location)){
+                return true;
+            }
+        }
+
+        return false;
     }
 }
