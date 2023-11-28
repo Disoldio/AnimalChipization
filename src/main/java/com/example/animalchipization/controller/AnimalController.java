@@ -4,6 +4,7 @@ import com.example.animalchipization.dto.AnimalDTO;
 import com.example.animalchipization.dto.SearchAnimalDTO;
 import com.example.animalchipization.dto.VisitedLocationDTO;
 import com.example.animalchipization.service.AnimalService;
+import com.example.animalchipization.service.VisitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,8 @@ public class AnimalController {
     @Autowired
     private AnimalService animalService;
 
+    @Autowired
+    private VisitService visitService;
 
     @PostMapping("/{animalId}/locations/{locationId}")
     public ResponseEntity<VisitedLocationDTO> addVisitedLocation(@PathVariable @Min(1) Long animalId, @PathVariable @Min(1) Long locationId){
@@ -44,7 +47,7 @@ public class AnimalController {
 
     @GetMapping("/{animalId}/locations")
     public ResponseEntity<List<VisitedLocationDTO>> allVisitedLocation(@PathVariable @Min(1) Long animalId){
-        return  ResponseEntity.ok(animalService.allVisitedLocation(animalId));
+        return  ResponseEntity.ok(visitService.allVisitedLocation(animalId));
     }
 
     @GetMapping("/search")
@@ -59,13 +62,16 @@ public class AnimalController {
 
     @PutMapping("/{animalId}/locations")
     public VisitedLocationDTO updateVisitedLocation(@Valid @RequestBody VisitedLocationDTO visitedLocationDTO,@PathVariable @Min(1) Long animalId){
-        return animalService.updateVisitedLocation(animalId, visitedLocationDTO);
+        return visitService.updateVisitedLocation(animalId, visitedLocationDTO);
     }
-
 
     @DeleteMapping("/{animalId}")
     public void deleteAnimal(@PathVariable @Min(1) Long animalId){
         animalService.deleteAnimal(animalId);
     }
 
+    @DeleteMapping("/{animalId}/locations/{visitedPointId}")
+    public void deleteVisitedLocation(@PathVariable @Min(1) Long animalId, @PathVariable @Min(1) Long visitedPointId ){
+        visitService.deleteVisitedLocation(animalId, visitedPointId);
+    }
 }
