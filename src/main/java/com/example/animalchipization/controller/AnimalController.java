@@ -28,7 +28,7 @@ public class AnimalController {
 
     @PostMapping("/{animalId}/locations/{locationId}")
     public ResponseEntity<VisitedLocationDTO> addVisitedLocation(@PathVariable @Min(1) Long animalId, @PathVariable @Min(1) Long locationId){
-        VisitedLocationDTO visitedLocationDTO = animalService.addVisitedLocation(animalId, locationId);
+        VisitedLocationDTO visitedLocationDTO = visitService.addVisitedLocation(animalId, locationId);
 
         return new ResponseEntity<>(visitedLocationDTO, HttpStatus.CREATED);
     }

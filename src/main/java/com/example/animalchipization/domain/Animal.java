@@ -7,7 +7,6 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Data
 @Entity
@@ -34,8 +33,8 @@ public class Animal {
     @JoinColumn(name="account_id")
     private Account chipper;
     @ManyToOne
-    @JoinColumn(name = "chippingLocationId")
-    private Location chippingLocationId;
+    @JoinColumn(name = "chippingLocation")
+    private Location chippingLocation;
     @Column(name = "deathDateTime")
     private LocalDateTime deathDateTime;
     @ManyToMany(cascade = CascadeType.REMOVE)
@@ -43,7 +42,7 @@ public class Animal {
             name = "animal_types_rel",
             joinColumns = @JoinColumn(name = "animal_id"),
             inverseJoinColumns = @JoinColumn(name = "types_id"))
-    private List<AnimalType> animalTypes;
+    private List<Type> types;
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "animal")
     private List<VisitedLocation> visitedLocations = new ArrayList<>();
 }

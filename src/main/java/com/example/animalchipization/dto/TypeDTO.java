@@ -9,8 +9,7 @@ import javax.validation.constraints.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AnimalTypeDTO{
-
+public class TypeDTO {
     private Long id;
     @NotNull
     @NotEmpty

@@ -7,7 +7,7 @@ import javax.persistence.*;
 @Data
 @Entity
 @Table(name = "animal_types")
-public class AnimalType {
+public class Type {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

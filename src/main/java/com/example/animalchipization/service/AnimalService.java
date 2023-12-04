@@ -3,8 +3,8 @@ package com.example.animalchipization.service;
 import com.example.animalchipization.domain.*;
 import com.example.animalchipization.dto.AnimalDTO;
 import com.example.animalchipization.dto.SearchAnimalDTO;
-import com.example.animalchipization.dto.VisitedLocationDTO;
 import com.example.animalchipization.exception.NotFoundException;
+import com.example.animalchipization.mapper.AnimalMapper;
 import com.example.animalchipization.repository.*;
 import com.example.animalchipization.util.CriteriaManager;
 import lombok.AllArgsConstructor;
@@ -25,102 +25,54 @@ public class AnimalService {
     private final ModelMapper modelMapper;
     private final AnimalRepository animalRepository;
     private final LocationRepository locationRepository;
-    private final AnimalTypeRepository animalTypeRepository;
-    private final VisitedLocationsRepository visitedLocationsRepository;
+    private final TypeRepository typeRepository;
     private final AccountRepository accountRepository;
     private final CriteriaManager criteriaManager;
     private final EntityRepository entityRepository;
-    private final  AnimalTypeService animalTypeService;
+    private final TypeService typeService;
+    private final AnimalMapper animalMapper;
 
     public AnimalDTO getById(Long id){
         Animal animal = animalRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
-
         AnimalDTO dto = modelMapper.map(animal, AnimalDTO.class);
-
         var ids = animal.getVisitedLocations().stream()
                 .map(VisitedLocation::getId)
                 .toList();
         dto.setVisitedLocationsIds(ids);
-
-
-        var types = animal.getAnimalTypes().stream()
-                .map(AnimalType::getId)
+        var types = animal.getTypes().stream()
+                .map(Type::getId)
                 .toList();
         dto.setAnimalTypesIds(types);
 
         return dto;
     }
 
-    public VisitedLocationDTO addVisitedLocation(Long animalId, Long locationId){
-        Animal animal = animalRepository.findById(animalId)
-                .orElseThrow(() -> new NotFoundException());
-        List<Long> locIds = animal.getVisitedLocations().stream()
-                .map(loc -> loc.getLocation().getId())
-                .toList();
-        List<VisitedLocation> sortedVisitedLocations = animal.getVisitedLocations().stream()
-                .sorted((vl1, vl2) -> vl2.getId().compareTo(vl1.getId()))
-                .toList();
-
-        if(animal.getChippingLocationId().getId().equals(locationId)){
-            throw new DataIntegrityViolationException("he`s already her");
-        }
-        if(!sortedVisitedLocations.isEmpty()){
-            int i = sortedVisitedLocations.size() - 1;
-            VisitedLocation visitedLocation = sortedVisitedLocations.get(i);
-            if(visitedLocation != null && visitedLocation.getLocation().getId().equals(locationId)){
-                throw new DataIntegrityViolationException("Предыдущая локация равна нынешней");
-            }
-        }
-
-        if(animal.getLifeStatus() == LifeStatus.DEAD){
-            throw new DataIntegrityViolationException("he`s dead");
-        }
-        Location location = locationRepository.findById(locationId)
-                .orElseThrow(() -> new NotFoundException());
-
-        VisitedLocation visitLoc = new VisitedLocation();
-
-        visitLoc.setAnimal(animal);
-        visitLoc.setLocation(location);
-        visitLoc.setVisitTime(LocalDateTime.now());
-        visitLoc = visitedLocationsRepository.save(visitLoc);
-
-        VisitedLocationDTO visitedLocationDTO = new VisitedLocationDTO(visitLoc.getId(), visitLoc.getVisitTime(), visitLoc.getLocation().getId());
-
-        return visitedLocationDTO;
-    }
-
     public AnimalDTO createAnimal(AnimalDTO dto){
         Animal animal = new Animal();
-
         if(dto.getAnimalTypesIds() == null || dto.getAnimalTypesIds().isEmpty()){
             throw new IllegalStateException();
         }
-        List<AnimalType> types = animalTypeService.findAllByIds(dto.getAnimalTypesIds());
-
+        List<Type> types = typeService.findAllByIds(dto.getAnimalTypesIds());
 
         modelMapper.map(dto, animal);
 
         Account account = accountRepository.findById(dto.getChipperId())
                 .orElseThrow(() -> new NotFoundException());
-
         Location location = locationRepository.findById(dto.getChippingLocationId())
                         .orElseThrow(() -> new NotFoundException());
 
-        animal.setChippingLocationId(location);
+        animal.setChippingLocation(location);
         animal.setChipper(account);
-        animal.setAnimalTypes(types);
-
+        animal.setTypes(types);
         animal = animalRepository.save(animal);
         AnimalDTO animalDTO = modelMapper.map(animal, AnimalDTO.class);
-
-        List<Long> ids = animal.getAnimalTypes().stream()
+        List<Long> ids = animal.getTypes().stream()
                 .map(type -> type.getId())
                 .toList();
 
         animalDTO.setAnimalTypesIds(ids);
-        animalDTO.setChippingLocationId(animal.getChippingLocationId().getId());
+        animalDTO.setChippingLocationId(animal.getChippingLocation().getId());
         animalDTO.setChipperId(account.getId());
 
         return animalDTO;
@@ -134,20 +86,38 @@ public class AnimalService {
         map.put("chippingLocationId", dto.getChippingLocationId());
         map.put("gender", dto.getGender());
         map.put("lifeStatus", dto.getLifeStatus());
-        CriteriaQuery<Animal> animalCriteriaQuery = criteriaManager.buildCriteria(Animal.class, map);
+        CriteriaQuery<Animal> animalCriteriaQuery = criteriaManager.buildAnimalCriteria(
+                dto.getChipperId(),
+                dto.getChippingLocationId(),
+                dto.getGender(),
+                dto.getLifeStatus(),
+                dto.getStartDateTime(),
+                dto.getEndDateTime());
 
         List<Animal> list = entityRepository.list(animalCriteriaQuery, dto.getFrom(), dto.getSize());
-        List<AnimalDTO> listDTO = list.stream().map(animal -> modelMapper.map(animal, AnimalDTO.class)).toList();
 
-        return listDTO;
+        return list.stream().map(animalMapper::toDto).toList();
     }
 
     public AnimalDTO updateAnimal(Long id, AnimalDTO dto){
-        Animal animal = animalRepository.getById(id);
-
+        Animal animal = animalRepository.findById(id)
+                .orElseThrow(NotFoundException::new);
+        Account chipperAccount = accountRepository.findById(dto.getChipperId())
+                .orElseThrow(NotFoundException::new);
+        Location chippingLocation = locationRepository.findById(dto.getChippingLocationId())
+                .orElseThrow(NotFoundException::new);
+        List<VisitedLocation> sortedVisitedLocations = animal.getVisitedLocations().stream()
+                .sorted(Comparator.comparing(VisitedLocation::getId))
+                .toList();
+        if(!sortedVisitedLocations.isEmpty()){
+            VisitedLocation visitedLocation = sortedVisitedLocations.get(0);
+            if(visitedLocation != null && visitedLocation.getLocation().equals(chippingLocation)){
+                throw new DataIntegrityViolationException("Новый Chipping равен первой VisitLocation");
+            }
+        }
         if(dto.getAnimalTypesIds() != null && !dto.getAnimalTypesIds().isEmpty()){
-            List<AnimalType> types = animalTypeService.findAllByIds(dto.getAnimalTypesIds());
-            animal.setAnimalTypes(types);
+            List<Type> types = typeService.findAllByIds(dto.getAnimalTypesIds());
+            animal.setTypes(types);
         }
 
         animal.setWeight(dto.getWeight());
@@ -156,21 +126,23 @@ public class AnimalService {
         animal.setGender(dto.getGender());
         animal.setLifeStatus(dto.getLifeStatus());
         animal.setChippingDateTime(dto.getChippingDateTime());
-       // animal.setChipperId(animalDTO.getChipperId());
-       // animal.setChippingLocationId(animalDTO.getChippingLocationId());
-        animal.setDeathDateTime(dto.getDeathDateTime());
-
-        //animal.setVisitedLocations(dto.getVisitedLocationsIds());
+        animal.setChipper(chipperAccount);
+        animal.setChippingLocation(chippingLocation);
+        if(dto.getLifeStatus().equals(LifeStatus.DEAD) && animal.getDeathDateTime() == null){
+            animal.setDeathDateTime(LocalDateTime.now());
+        }
 
         Animal saveAnimal = animalRepository.save(animal);
-
-        return modelMapper.map(saveAnimal, AnimalDTO.class);
+        AnimalDTO saveDto = modelMapper.map(saveAnimal, AnimalDTO.class);
+        saveDto.setAnimalTypesIds(animal.getTypes().stream()
+                .map(type -> type.getId())
+                .toList());
+        return saveDto;
     }
 
     public void deleteAnimal(Long id){
         Animal animal = animalRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException());
-
         if(!animal.getVisitedLocations().isEmpty()){
             throw new IllegalStateException();
         }

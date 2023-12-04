@@ -1,73 +1,86 @@
 package com.example.animalchipization.service;
 
-import com.example.animalchipization.domain.AnimalType;
-import com.example.animalchipization.dto.AccountDTO;
-import com.example.animalchipization.dto.AnimalTypeDTO;
+import com.example.animalchipization.domain.Animal;
+import com.example.animalchipization.domain.Type;
+import com.example.animalchipization.dto.AnimalDTO;
+import com.example.animalchipization.dto.ChangeTypeDTO;
 import com.example.animalchipization.exception.AlreadyExistException;
-import com.example.animalchipization.exception.InaccessibleEntityException;
 import com.example.animalchipization.exception.NotFoundException;
-import com.example.animalchipization.repository.AnimalTypeRepository;
-import org.modelmapper.ModelMapper;
+import com.example.animalchipization.mapper.Mapper;
+import com.example.animalchipization.repository.AnimalRepository;
+import com.example.animalchipization.repository.TypeRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
+@AllArgsConstructor
 public class AnimalTypeService {
+
     @Autowired
-    private ModelMapper modelMapper;
+    private AnimalRepository animalRepository;
     @Autowired
-    private AnimalTypeRepository animalTypeRepository;
+    private TypeRepository typeRepository;
+    @Autowired
+    private Mapper<Animal, AnimalDTO> mapper;
 
-    public AnimalTypeDTO createType(AnimalTypeDTO dto){
-        AnimalType animalType = new AnimalType();
-
-        animalTypeRepository.findByType(dto.getType())
-                .ifPresent(type -> {throw new AlreadyExistException();});
-
-        modelMapper.map(dto, animalType);
-
-        animalType = animalTypeRepository.save(animalType);
-        AnimalTypeDTO animalTypeDTO = modelMapper.map(animalType, AnimalTypeDTO.class);
-
-        return animalTypeDTO;
-    }
-
-    public AnimalTypeDTO getById(Long id){
-        return animalTypeRepository.findById(id)
-                .map(type -> modelMapper.map(type, AnimalTypeDTO.class))
+    public AnimalDTO addTypeToAnimal(Long animalId, Long typeId){
+        Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(NotFoundException::new);
+        Type type = typeRepository.findById(typeId)
+                .orElseThrow(NotFoundException::new);
+        List<Type> types = animal.getTypes();
+        if(types.contains(type)){
+            throw new AlreadyExistException();
+        }
+        types.add(type);
+        Animal saveAnimal = animalRepository.save(animal);
+
+        return mapper.toDto(saveAnimal);
     }
 
-    public List<AnimalType> findAllByIds(List<Long> ids){
-        return ids.stream()
-                .map(id -> animalTypeRepository.findById(id))
-                .map(opt -> opt.orElseThrow(NotFoundException::new))
-                .toList();
+    public AnimalDTO updateTypeToAnimal(Long animalId, ChangeTypeDTO changeTypeDTO){
+        Animal animal = animalRepository.findById(animalId)
+                .orElseThrow(NotFoundException::new);
+        Type oldType = typeRepository.findById(changeTypeDTO.getOldTypeId())
+                .orElseThrow(NotFoundException::new);
+        Type newType = typeRepository.findById(changeTypeDTO.getNewTypeId())
+                .orElseThrow(NotFoundException::new);
+        List<Type> types = animal.getTypes();
+        if(!animal.getTypes().contains(oldType)){
+            throw new NotFoundException();
+        }
+        if(animal.getTypes().contains(newType)){
+            throw new AlreadyExistException();
+        }
+
+        int i = types.indexOf(oldType);
+        types.set(i, newType);
+        Animal saveAnimal = animalRepository.save(animal);
+
+        return mapper.toDto(saveAnimal);
     }
 
-    public AnimalTypeDTO updateAnimalType(Long id, AnimalTypeDTO animalTypeDTO){
-        AnimalType animalType = animalTypeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException());
+    public AnimalDTO deleteTypeToAnimal(Long animalId, Long typeId){
+        Animal animal = animalRepository.findById(animalId)
+                .orElseThrow(NotFoundException::new);
+        Type type = typeRepository.findById(typeId)
+                .orElseThrow(NotFoundException::new);
+        List<Type> types = animal.getTypes();
+        if(!types.contains(type)){
+            throw new NotFoundException();
+        }
+        if(types.size() == 1){
+            throw new DataIntegrityViolationException("he is one");
+        }
 
-        animalTypeRepository.findByType(animalTypeDTO.getType())
-                .ifPresent(type -> {throw new AlreadyExistException();});
+        types.remove(type);
+        Animal saveAnimal = animalRepository.save(animal);
 
-        animalType.setType(animalTypeDTO.getType());
-
-        AnimalType saveAnimalType = animalTypeRepository.save(animalType);
-        AnimalTypeDTO dto = modelMapper.map(saveAnimalType, AnimalTypeDTO.class);
-        return dto;
+        return mapper.toDto(saveAnimal);
     }
-
-    public void deleteAnimalType(Long id){
-        AnimalType animalType = animalTypeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException());
-
-        animalTypeRepository.delete(animalType);
-    }
-
-
-
 }

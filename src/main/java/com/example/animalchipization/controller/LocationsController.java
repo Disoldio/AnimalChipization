@@ -1,7 +1,5 @@
 package com.example.animalchipization.controller;
 
-import com.example.animalchipization.dto.AccountDTO;
-import com.example.animalchipization.dto.AnimalTypeDTO;
 import com.example.animalchipization.dto.LocationDTO;
 import com.example.animalchipization.service.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;

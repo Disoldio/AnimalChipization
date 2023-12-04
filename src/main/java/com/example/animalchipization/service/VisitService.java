@@ -1,6 +1,7 @@
 package com.example.animalchipization.service;
 
 import com.example.animalchipization.domain.Animal;
+import com.example.animalchipization.domain.LifeStatus;
 import com.example.animalchipization.domain.Location;
 import com.example.animalchipization.domain.VisitedLocation;
 import com.example.animalchipization.dto.VisitedLocationDTO;
@@ -9,11 +10,12 @@ import com.example.animalchipization.repository.AnimalRepository;
 import com.example.animalchipization.repository.LocationRepository;
 import com.example.animalchipization.repository.VisitedLocationsRepository;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -35,6 +37,44 @@ public class VisitService {
 
     }
 
+    public VisitedLocationDTO addVisitedLocation(Long animalId, Long locationId){
+        Animal animal = animalRepository.findById(animalId)
+                .orElseThrow(() -> new NotFoundException());
+        List<Long> locIds = animal.getVisitedLocations().stream()
+                .map(loc -> loc.getLocation().getId())
+                .toList();
+        List<VisitedLocation> sortedVisitedLocations = animal.getVisitedLocations().stream()
+                .sorted(Comparator.comparing(VisitedLocation::getId))
+                .toList();
+        if(animal.getChippingLocation().getId().equals(locationId) && sortedVisitedLocations.isEmpty()){
+            throw new DataIntegrityViolationException("he`s already her");
+        }
+        if(!sortedVisitedLocations.isEmpty()){
+            int i = sortedVisitedLocations.size() - 1;
+            VisitedLocation visitedLocation = sortedVisitedLocations.get(i);
+            if(visitedLocation != null && visitedLocation.getLocation().getId().equals(locationId)){
+                throw new DataIntegrityViolationException("Предыдущая локация равна нынешней");
+            }
+        }
+
+        if(animal.getLifeStatus() == LifeStatus.DEAD){
+            throw new DataIntegrityViolationException("he`s dead");
+        }
+        Location location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new NotFoundException());
+
+        VisitedLocation visitLoc = new VisitedLocation();
+
+        visitLoc.setAnimal(animal);
+        visitLoc.setLocation(location);
+        visitLoc.setVisitTime(LocalDateTime.now());
+        visitLoc = visitedLocationsRepository.save(visitLoc);
+
+        VisitedLocationDTO visitedLocationDTO = new VisitedLocationDTO(visitLoc.getId(), visitLoc.getVisitTime(), visitLoc.getLocation().getId());
+
+        return visitedLocationDTO;
+    }
+
     public VisitedLocationDTO updateVisitedLocation(Long animalId, VisitedLocationDTO dto){
         VisitedLocation visitedLocation = visitedLocationsRepository.findById(dto.getId())
                 .orElseThrow(NotFoundException::new);
@@ -42,7 +82,7 @@ public class VisitService {
                 .orElseThrow(NotFoundException::new);
         Location location = locationRepository.findById(dto.getLocationPointId())
                 .orElseThrow(NotFoundException::new);
-        Long chippingId = animal.getChippingLocationId().getId();
+        Long chippingId = animal.getChippingLocation().getId();
         List<VisitedLocation> sortedVisitedLocations = animal.getVisitedLocations().stream()
                 .sorted((vl1, vl2) -> vl2.getId().compareTo(vl1.getId()))
                 .toList();
@@ -56,10 +96,9 @@ public class VisitService {
                 throw new DataIntegrityViolationException("");
             }
         }
-//        if(checkCollision(sortedVisitedLocations, visitedLocation, location)){
-//            throw new DataIntegrityViolationException("Совпадает с предыдущим и/или со следующим");
-//        }
-
+        if(visitedLocation.getLocation().equals(location)){
+            throw new DataIntegrityViolationException("Одно и тоже");
+        }
         int index = sortedVisitedLocations.indexOf(visitedLocation);
         visitedLocation = sortedVisitedLocations.get(index);
         visitedLocation.setLocation(location);
@@ -71,13 +110,26 @@ public class VisitService {
     public void deleteVisitedLocation(Long animalId, Long visitedPointId){
         Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(() -> new NotFoundException("AnimalId is not found " + animalId));
-
         VisitedLocation visitedLocation = visitedLocationsRepository.findById(visitedPointId)
                 .orElseThrow(() -> new NotFoundException("VisitedPointId is not found " + visitedPointId));
-
+        List<VisitedLocation> sortedVisitedLocations = animal.getVisitedLocations().stream()
+                .sorted(Comparator.comparing(VisitedLocation::getId))
+                .toList();
         if(!animal.getVisitedLocations().contains(visitedLocation)){
             throw new NotFoundException("Animal " + animalId + " has no visit id:" + visitedPointId);
         }
+        int i = sortedVisitedLocations.indexOf(visitedLocation);
+        if(sortedVisitedLocations.size()-1 != i){
+            VisitedLocation objectOneVisitLocation = sortedVisitedLocations.get(i);
+            VisitedLocation objectTwoVisitLocation = sortedVisitedLocations.get(i+1);
+            if(sortedVisitedLocations.get(0).equals(objectOneVisitLocation) && objectTwoVisitLocation.getLocation().equals(animal.getChippingLocation())){
+                animal.getVisitedLocations().remove(objectTwoVisitLocation);
+                visitedLocationsRepository.deleteById(objectTwoVisitLocation.getId());
+            }
+        }
+
+
+
         animal.getVisitedLocations().remove(visitedLocation);
         validateLocations(animal.getVisitedLocations());
         visitedLocationsRepository.deleteById(visitedPointId);

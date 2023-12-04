@@ -23,10 +23,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/registration");
-    }
+//    @Override
+//    public void configure(WebSecurity web) throws Exception {
+//        web.ignoring().antMatchers("/registration");
+//    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -34,6 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .cors().disable()
                 .authorizeRequests()
+                .antMatchers("/registration").anonymous()
                 .antMatchers(HttpMethod.GET, WHITE_LIST).permitAll()
                 .anyRequest().authenticated()
                 .and().httpBasic();
