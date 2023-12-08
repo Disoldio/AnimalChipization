@@ -29,6 +29,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.modelmapper:modelmapper:2.4.5'
     implementation 'org.postgresql:postgresql'
+    implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.25.0'
 
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

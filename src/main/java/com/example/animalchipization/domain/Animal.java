@@ -24,24 +24,24 @@ public class Animal {
     @Column(name = "gender")
     @Enumerated(value = EnumType.STRING)
     private Gender gender;
-    @Column(name = "lifeStatus")
+    @Column(name = "life_status")
     @Enumerated(value = EnumType.STRING)
     private LifeStatus lifeStatus = LifeStatus.ALIVE;
-    @Column(name = "chippingDateTime")
+    @Column(name = "chipping_date_time")
     private LocalDateTime chippingDateTime;
     @ManyToOne
     @JoinColumn(name="account_id")
     private Account chipper;
     @ManyToOne
-    @JoinColumn(name = "chippingLocation")
+    @JoinColumn(name = "chipping_location")
     private Location chippingLocation;
-    @Column(name = "deathDateTime")
+    @Column(name = "death_date_time")
     private LocalDateTime deathDateTime;
     @ManyToMany(cascade = CascadeType.REMOVE)
     @JoinTable(
             name = "animal_types_rel",
             joinColumns = @JoinColumn(name = "animal_id"),
-            inverseJoinColumns = @JoinColumn(name = "types_id"))
+            inverseJoinColumns = @JoinColumn(name = "type_id"))
     private List<Type> types;
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "animal")
     private List<VisitedLocation> visitedLocations = new ArrayList<>();

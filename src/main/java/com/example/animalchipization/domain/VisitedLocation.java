@@ -20,5 +20,6 @@ public class VisitedLocation {
     @ManyToOne
     @JoinColumn(name = "location_id")
     private Location location;
+    @Column(name = "visit_time")
     private LocalDateTime visitTime;
 }

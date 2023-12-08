@@ -22,28 +22,19 @@ import java.util.Map;
 @Service
 @AllArgsConstructor
 public class AnimalService {
-    private final ModelMapper modelMapper;
     private final AnimalRepository animalRepository;
     private final LocationRepository locationRepository;
-    private final TypeRepository typeRepository;
     private final AccountRepository accountRepository;
     private final CriteriaManager criteriaManager;
     private final EntityRepository entityRepository;
     private final TypeService typeService;
+    private  final ModelMapper modelMapper;
     private final AnimalMapper animalMapper;
 
     public AnimalDTO getById(Long id){
         Animal animal = animalRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
-        AnimalDTO dto = modelMapper.map(animal, AnimalDTO.class);
-        var ids = animal.getVisitedLocations().stream()
-                .map(VisitedLocation::getId)
-                .toList();
-        dto.setVisitedLocationsIds(ids);
-        var types = animal.getTypes().stream()
-                .map(Type::getId)
-                .toList();
-        dto.setAnimalTypesIds(types);
+        AnimalDTO dto = animalMapper.toDto(animal);
 
         return dto;
     }
@@ -66,14 +57,7 @@ public class AnimalService {
         animal.setChipper(account);
         animal.setTypes(types);
         animal = animalRepository.save(animal);
-        AnimalDTO animalDTO = modelMapper.map(animal, AnimalDTO.class);
-        List<Long> ids = animal.getTypes().stream()
-                .map(type -> type.getId())
-                .toList();
-
-        animalDTO.setAnimalTypesIds(ids);
-        animalDTO.setChippingLocationId(animal.getChippingLocation().getId());
-        animalDTO.setChipperId(account.getId());
+        AnimalDTO animalDTO = animalMapper.toDto(animal);
 
         return animalDTO;
     }
@@ -131,12 +115,9 @@ public class AnimalService {
         if(dto.getLifeStatus().equals(LifeStatus.DEAD) && animal.getDeathDateTime() == null){
             animal.setDeathDateTime(LocalDateTime.now());
         }
-
         Animal saveAnimal = animalRepository.save(animal);
-        AnimalDTO saveDto = modelMapper.map(saveAnimal, AnimalDTO.class);
-        saveDto.setAnimalTypesIds(animal.getTypes().stream()
-                .map(type -> type.getId())
-                .toList());
+        AnimalDTO saveDto = animalMapper.toDto(saveAnimal);
+
         return saveDto;
     }
 

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2" author="andrey.kookumber" context="core">
+        <sql>
+            CREATE TABLE animal_types_rel(
+                animal_id BIGINT NOT NULL,
+                type_id BIGINT NOT NULL
+            );
+            ALTER TABLE animal_types_rel ADD CONSTRAINT pk_animal_types_rel PRIMARY KEY(animal_id, type_id);
+            ALTER TABLE animal_types_rel ADD CONSTRAINT fk_animal_id FOREIGN KEY(animal_id) REFERENCES animal(id);
+            ALTER TABLE animal_types_rel ADD CONSTRAINT fk_type_id FOREIGN KEY(type_id) REFERENCES animal_types(id);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

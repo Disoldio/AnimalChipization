@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="1" author="andrey.kookumber" context="core">
+        <sql>
+            CREATE TABLE accounts(
+               id BIGSERIAL NOT NULL PRIMARY KEY,
+               first_name varchar(255) NOT NULL,
+               last_name varchar(255) NOT NULL,
+               email varchar(255) NOT NULL,
+               password varchar(255) NOT NULL
+            );
+            CREATE TABLE animal(
+                id BIGSERIAL NOT NULL PRIMARY KEY,
+                weight FLOAT NOT NULL,
+                length FLOAT NOT NULL,
+                height FLOAT NOT NULL,
+                gender varchar(255) NOT NULL,
+                life_status varchar(255),
+                chipping_date_time TIMESTAMP,
+                account_id BIGINT NOT NULL,
+                chipping_location BIGINT NOT NULL,
+                death_date_time TIMESTAMP,
+                types_id BIGINT
+            );
+            CREATE TABLE animal_types(
+                id BIGSERIAL NOT NULL PRIMARY KEY,
+                type varchar(255) NOT NULL
+            );
+            CREATE TABLE location(
+                 id BIGSERIAL NOT NULL PRIMARY KEY,
+                 latitude DOUBLE PRECISION NOT NULL,
+                 longitude DOUBLE PRECISION NOT NULL
+            );
+            CREATE TABLE visited_location(
+                 id BIGSERIAL NOT NULL PRIMARY KEY,
+                 animal_id BIGINT NOT NULL,
+                 location_id BIGINT NOT NULL,
+                 visitTime DATE
+            );
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
